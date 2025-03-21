@@ -67,8 +67,8 @@ backend/
 
 1. Clone the repository
    ```bash
-   git clone <repository-url>
-   cd backend
+   git clone https://github.com/Sam-Waithaka/SIQ_Backend.git
+   cd SIQ_Backend
    ```
 
 2. Create a virtual environment
