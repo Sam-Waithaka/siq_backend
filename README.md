@@ -13,8 +13,8 @@ A RESTful API built with Django and Django REST Framework that provides a comple
 ## Tech Stack
 
 - Python 3.8+
-- Django 4.2.7
-- Django REST Framework 3.14.0
+- Django 5.1.7
+- Django REST Framework 3.15.2
 - PostgreSQL (database)
 - Django REST Framework Simple JWT
 - drf-yasg (Swagger/OpenAPI documentation)
@@ -25,13 +25,13 @@ A RESTful API built with Django and Django REST Framework that provides a comple
 backend/
 ├── manage.py
 ├── requirements.txt
-├── user_api/                 # Project settings
+├── config/                 # Project settings
 │   ├── __init__.py
 │   ├── asgi.py
 │   ├── settings.py           # Django settings, JWT configuration
 │   ├── urls.py               # Main URL routing
 │   └── wsgi.py
-├── user_management/          # User app
+├── users/          # User app
 │   ├── __init__.py
 │   ├── admin.py              # Admin interface configuration
 │   ├── apps.py
