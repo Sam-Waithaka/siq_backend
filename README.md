@@ -9,6 +9,7 @@ A RESTful API built with Django and Django REST Framework that provides a comple
 - User profile management
 - API documentation with Swagger/OpenAPI
 - Comprehensive test suite
+- Dockerized deployment with PostgreSQL
 
 ## Tech Stack
 
@@ -18,20 +19,21 @@ A RESTful API built with Django and Django REST Framework that provides a comple
 - PostgreSQL (database)
 - Django REST Framework Simple JWT
 - drf-yasg (Swagger/OpenAPI documentation)
+- Docker & Docker Compose
+- WhiteNoise (for static files management)
+
 
 ## Project Structure
 
 ```
-backend/
-├── manage.py
-├── requirements.txt
+siq_backend/
 ├── config/                 # Project settings
 │   ├── __init__.py
 │   ├── asgi.py
 │   ├── settings.py           # Django settings, JWT configuration
 │   ├── urls.py               # Main URL routing
 │   └── wsgi.py
-├── users/          # User app
+├── users/                   # User app
 │   ├── __init__.py
 │   ├── admin.py              # Admin interface configuration
 │   ├── apps.py
@@ -41,6 +43,18 @@ backend/
 │   ├── tests.py              # Test suite
 │   ├── urls.py               # App URL routing
 │   └── views.py              # API endpoints
+├── static/                  # Static files (collected)
+├── staticfiles/             # WhiteNoise static file directory
+├── venv/                    # Virtual environment (should not be in version control)
+├── .dockerignore            # Docker ignore rules
+├── .env                     # Environment variables (DO NOT COMMIT TO VERSION CONTROL)
+├── .gitignore               # Git ignore rules
+├── db.sqlite3               # SQLite database (for local development)
+├── docker-compose.yml       # Docker Compose configuration
+├── Dockerfile               # Dockerfile for containerized deployment
+├── manage.py                # Django management script
+├── README.md                # Project documentation
+├── requirements.txt         # Project dependencies
 ```
 
 ## API Endpoints
@@ -59,9 +73,7 @@ backend/
 
 ### Prerequisites
 
-- Python 3.8+
-- PostgreSQL
-- pip (Python package manager)
+- Docker & Docker Compose
 
 ### Installation
 
@@ -71,60 +83,40 @@ backend/
    cd siq_backend
    ```
 
-2. Create a virtual environment
+2.Build and start the containers
    ```bash
-   python -m venv venv
+   docker-compose up --build -d
    ```
 
-3. Activate the virtual environment
-   - On Windows:
+3. Apply database migrations:
      ```bash
-     venv\Scripts\activate
-     ```
-   - On Unix/MacOS:
-     ```bash
-     source venv/bin/activate
+     docker-compose exec backend python manage.py migrate
      ```
 
-4. Install dependencies
+4. Collect static files:
    ```bash
-   pip install -r requirements.txt
+   docker-compose exec backend python manage.py collectstatic --noinput
    ```
 
-5. Configure the database
-   - Create a PostgreSQL database named `user_management_db`
-   - Update database settings in `user_api/settings.py` if needed
-
-6. Apply database migrations
+5. Create a superuser (optional, for admin access):
    ```bash
-   python manage.py makemigrations
-   python manage.py migrate
+   docker-compose exec backend python manage.py createsuperuser
    ```
 
-7. Create a superuser (optional, for admin access)
-   ```bash
-   python manage.py createsuperuser
-   ```
-
-8. Run the development server
-   ```bash
-   python manage.py runserver
-   ```
-
-9. Access the API at http://127.0.0.1:8000/api/
+9. Access the application at http://127.0.0.1:8000/api/
    - Swagger documentation: http://127.0.0.1:8000/swagger/
    - ReDoc documentation: http://127.0.0.1:8000/redoc/
 
-## Running Tests
+## Running Tests in Docker
 
-Run the test suite with:
+To run tests inside the container:
 ```bash
-python manage.py test users
+docker-compose exec backend python manage.py test users
 ```
 
 To run specific test classes:
 ```bash
-python manage.py test users.tests.UserRegistrationTests
+docker-compose exec backend python manage.py test users.tests.UserRegistrationTests
 ```
 
 ## Authentication
