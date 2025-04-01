@@ -1,0 +1,84 @@
+name: CI/CD Pipeline (Django Backend)
+
+on:
+  push:
+    branches:
+      - main  # Trigger only for pushes to the main branch
+  pull_request:
+    branches:
+      - main  # Trigger for PRs to main branch
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U ${{ secrets.POSTGRES_USER }}"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Set Up Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker Image
+        run: |
+          docker build -t siq-backend .
+
+      - name: Run Migrations
+        env:
+          DATABASE_URL: postgres://postgres:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/postgres
+        run: |
+          docker-compose -f docker-compose.yml run backend python manage.py migrate
+
+      - name: Run Tests
+        env:
+          DATABASE_URL: postgres://postgres:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/postgres
+        run: |
+          docker-compose -f docker-compose.yml run backend python manage.py test
+
+      #  Docker push step 
+      # - name: Push Docker Image to Docker Hub
+      #   run: |
+      #     docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      #     docker tag siq-backend myusername/siq-backend:latest
+      #     docker push myusername/siq-backend:latest
+
+      # Azure Kubernetes Deployment (Commented out)
+      # - name: Set up Azure Credentials
+      #   uses: azure/setup-azure-cli@v1
+      #   with:
+      #     azure-subscription: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      #     azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+      #     azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+      #     azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+      # - name: Deploy to Azure Kubernetes
+      #   run: |
+      #     az aks get-credentials --resource-group <your-resource-group> --name <your-cluster-name>
+      #     kubectl apply -f kubernetes/deployment.yaml
+      #     kubectl apply -f kubernetes/service.yaml
+
